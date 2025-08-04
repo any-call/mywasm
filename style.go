@@ -1,302 +1,388 @@
 package mywasm
 
-import "github.com/maxence-charriere/go-app/v10/pkg/app"
+import (
+	"fmt"
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
+	"image/color"
+	"strconv"
+)
 
-type Styler struct {
-	base app.UI
+type Styler[E app.UI] struct {
+	base E
 }
 
-func NewStyler(ui app.UI) *Styler {
-	return &Styler{base: ui}
+func NewStyler[E app.UI](ui E) *Styler[E] {
+	return &Styler[E]{base: ui}
+}
+
+// 设置元素在父容器的位置
+func (s *Styler[E]) SetAlign(align Align) *Styler[E] {
+	setStyle(s.base, "position", "absolute")
+	switch align {
+	case AlignTopLeft:
+		setStyle(s.base, "top", "0")
+		setStyle(s.base, "left", "0")
+		break
+
+	case AlignTopCenter:
+		setStyle(s.base, "top", "0")
+		setStyle(s.base, "left", "50%")
+		setStyle(s.base, "transform", "translateX(-50%)")
+		break
+
+	case AlignTopRight:
+		setStyle(s.base, "top", "0")
+		setStyle(s.base, "right", "0")
+		break
+
+	case AlignCenterLeft:
+		setStyle(s.base, "top", "50%")
+		setStyle(s.base, "left", "0")
+		setStyle(s.base, "transform", "translateY(-50%)")
+		break
+
+	case AlignCenter:
+		setStyle(s.base, "top", "50%")
+		setStyle(s.base, "left", "50%")
+		setStyle(s.base, "transform", "translate(-50%, -50%)")
+		break
+
+	case AlignCenterRight:
+		setStyle(s.base, "top", "50%")
+		setStyle(s.base, "right", "0")
+		setStyle(s.base, "transform", "translateY(-50%)")
+		break
+
+	case AlignBottomLeft:
+		setStyle(s.base, "bottom", "0")
+		setStyle(s.base, "left", "0")
+		break
+
+	case AlignBottomCenter:
+		setStyle(s.base, "bottom", "0")
+		setStyle(s.base, "left", "50%")
+		setStyle(s.base, "transform", "translateX(-50%)")
+		break
+
+	case AlignBottomRight:
+		setStyle(s.base, "bottom", "0")
+		setStyle(s.base, "right", "0")
+		break
+	}
+
+	return s
 }
 
 // 设置元素的宽度
-// 示例：.Width("100px")
-func (s *Styler) Width(v string) *Styler {
-	s.applyStyle("width", v)
+func (s *Styler[E]) SetWidthPX(width int) *Styler[E] {
+	setStyle(s.base, "width", "%dpx", width)
 	return s
 }
 
 // 设置元素的高度
-// 示例：.Height("200px")
-func (s *Styler) Height(v string) *Styler {
-	s.applyStyle("height", v)
+func (s *Styler[E]) SetHeightPX(v int) *Styler[E] {
+	setStyle(s.base, "height", "%dpx", v)
 	return s
 }
 
 // 设置背景颜色
 // 示例：.Background("skyblue")
-func (s *Styler) Background(v string) *Styler {
-	s.applyStyle("background-color", v)
+func (s *Styler[E]) SetBackgroundColor(v color.Color) *Styler[E] {
+	setStyle(s.base, "background-color", ColorToCSS(v))
+	return s
+}
+
+// 设置字体颜色
+func (s *Styler[E]) SetColor(v color.Color) *Styler[E] {
+	setStyle(s.base, "color", ColorToCSS(v))
 	return s
 }
 
 // 设置内边距（padding）
 // 示例：.Padding("10px")
-func (s *Styler) Padding(v string) *Styler {
-	s.applyStyle("padding", v)
+func (s *Styler[E]) SetPaddingPx(v ...int) *Styler[E] {
+	var value string
+	switch len(v) {
+	case 0:
+		return s
+	case 1:
+		// 四个方向相同
+		value = fmt.Sprintf("%dpx", v[0])
+		break
+	case 2:
+		// 上下 + 左右
+		value = fmt.Sprintf("%dpx %dpx", v[0], v[1])
+		break
+	case 3:
+		// 上 + 左右 + 下
+		value = fmt.Sprintf("%dpx %dpx %dpx", v[0], v[1], v[2])
+		break
+	default:
+		// 上 + 右 + 下 + 左
+		value = fmt.Sprintf("%dpx %dpx %dpx %dpx", v[0], v[1], v[2], v[3])
+		break
+	}
+
+	setStyle(s.base, "padding", value)
 	return s
 }
 
 // 设置外边距（margin）
-// 示例：.Margin("1rem")
-func (s *Styler) Margin(v string) *Styler {
-	s.applyStyle("margin", v)
-	return s
-}
+func (s *Styler[E]) SetMarginPx(v ...int) *Styler[E] {
+	var value string
+	switch len(v) {
+	case 0:
+		return s
+	case 1:
+		// 四个方向相同
+		value = fmt.Sprintf("%dpx", v[0])
+		break
+	case 2:
+		// 上下 + 左右
+		value = fmt.Sprintf("%dpx %dpx", v[0], v[1])
+		break
+	case 3:
+		// 上 + 左右 + 下
+		value = fmt.Sprintf("%dpx %dpx %dpx", v[0], v[1], v[2])
+		break
+	default:
+		// 上 + 右 + 下 + 左
+		value = fmt.Sprintf("%dpx %dpx %dpx %dpx", v[0], v[1], v[2], v[3])
+		break
+	}
 
-// 设置 display 类型
-// 示例：.Display("flex")
-func (s *Styler) Display(v string) *Styler {
-	s.applyStyle("display", v)
-	return s
-}
-
-// 设置主轴对齐方式
-// 示例：.JustifyContent("center")
-func (s *Styler) JustifyContent(v string) *Styler {
-	s.applyStyle("justify-content", v)
-	return s
-}
-
-// 设置交叉轴对齐方式
-// 示例：.AlignItems("center")
-func (s *Styler) AlignItems(v string) *Styler {
-	s.applyStyle("align-items", v)
-	return s
-}
-
-// 设置字体颜色
-// 示例：.Color("white")
-func (s *Styler) Color(v string) *Styler {
-	s.applyStyle("color", v)
+	setStyle(s.base, "margin", value)
 	return s
 }
 
 // 设置边框样式
-// 示例：.Border("1px solid black")
-func (s *Styler) Border(v string) *Styler {
-	s.applyStyle("border", v)
+func (s *Styler[E]) SetBorder(widthPx int, style BorderStyle, color color.Color, sides ...BorderSide) *Styler[E] {
+	css := fmt.Sprintf("%dpx %s %s", widthPx, style, ColorToCSS(color))
+	if len(sides) == 0 {
+		setStyle(s.base, "border", css)
+	} else {
+		for _, side := range sides {
+			setStyle(s.base, fmt.Sprintf("%v", side), css)
+		}
+	}
+
 	return s
 }
 
 // 设置圆角大小
-// 示例：.BorderRadius("8px")
-func (s *Styler) BorderRadius(v string) *Styler {
-	s.applyStyle("border-radius", v)
+func (s *Styler[E]) SetBorderRadius(rPx int, sides ...BorderRadiusSide) *Styler[E] {
+	css := strconv.Itoa(rPx) + "px"
+	if len(sides) == 0 {
+		setStyle(s.base, "border-radius", css)
+	} else {
+		for _, side := range sides {
+			setStyle(s.base, fmt.Sprintf("%v", side), css)
+		}
+	}
 	return s
 }
 
 // 设置字体大小
 // 示例：.FontSize("16px")
-func (s *Styler) FontSize(v string) *Styler {
-	s.applyStyle("font-size", v)
+func (s *Styler[E]) SetFontSizePx(v int) *Styler[E] {
+	setStyle(s.base, "font-size", strconv.Itoa(v)+"px")
 	return s
 }
 
 // 设置文字对齐方式
 // 示例：.TextAlign("center")
-func (s *Styler) TextAlign(v string) *Styler {
-	s.applyStyle("text-align", v)
+func (s *Styler[E]) TextAlign(v string) *Styler[E] {
+	setStyle(s.base, "text-align", v)
 	return s
 }
 
 // === 终结器 ===
 
 // 返回最终设置后的元素
-func (s *Styler) Apply() app.UI {
+func (s *Styler[E]) ToUI() E {
 	return s.base
 }
 
-func (s *Styler) applyStyle(name, value string) {
-	switch el := s.base.(type) {
+func setStyle(ui app.UI, name, format string, value ...any) {
+	switch el := ui.(type) {
 	case app.HTMLAbbr:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLA:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLArticle:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLAside:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLB:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLBody:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLBr:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLButton:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLCanvas:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLCaption:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLCode:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLDiv:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLEm:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLEmbed:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLFieldSet:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLFigCaption:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLFigure:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLFooter:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLForm:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLH1:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLH2:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLH3:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLH4:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLH5:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLH6:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLHeader:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLI:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLIFrame:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLImg:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLInput:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLLabel:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLLegend:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLLi:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLMain:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLNav:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLOl:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLOption:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLP:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLPre:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLScript:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLSection:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLSelect:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLSmall:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLSpan:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLStrong:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLStyle:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLTable:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLTBody:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLTd:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLTextarea:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLTh:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLTHead:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLTitle:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLTr:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	case app.HTMLUl:
-		el.Style(name, value)
+		el.Style(name, format, value...)
 		break
 	default:
 		break
 	}
 }
 
-// 设置居中布局样式（flex + 居中）
-// 示例：FlexCenter(app.Div())
-func FlexCenter(ui app.UI) app.UI {
-	return NewStyler(ui).
-		Display("flex").
-		JustifyContent("center").
-		AlignItems("center").
-		Apply()
-}
+func ColorToCSS(c color.Color) string {
+	r, g, b, a := c.RGBA()
 
-// 卡片风格样式（内边距 + 边框 + 背景）
-// 示例：CardStyle(app.Div())
-func CardStyle(ui app.UI) app.UI {
-	return NewStyler(ui).
-		Padding("20px").
-		Border("1px solid #ccc").
-		BorderRadius("8px").
-		Background("white").
-		Apply()
+	// r,g,b,a 是 0~65535，需要转换为 0~255（a 转为 0.0~1.0）
+	r8 := uint8(r >> 8)
+	g8 := uint8(g >> 8)
+	b8 := uint8(b >> 8)
+	alpha := float64(a) / 65535.0
+
+	return fmt.Sprintf("rgba(%d, %d, %d, %.2f)", r8, g8, b8, alpha)
 }
