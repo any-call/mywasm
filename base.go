@@ -42,3 +42,15 @@ const (
 	BorderRadiusBottomLeft  BorderRadiusSide = "border-bottom-left-radius"
 	BorderRadiusBottomRight BorderRadiusSide = "border-bottom-right-radius"
 )
+
+// 定义组件内文字对齐方式
+type TextAlign string
+
+const (
+	TextAlignLeft    TextAlign = "left"
+	TextAlignCenter  TextAlign = "center"
+	TextAlignRight   TextAlign = "right"
+	TextAlignJustify TextAlign = "justify" //两端对齐
+	TextAlignStart   TextAlign = "start"
+	TextAlignEnd     TextAlign = "end"
+)

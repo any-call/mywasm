@@ -190,13 +190,10 @@ func (s *Styler[E]) SetFontSizePx(v int) *Styler[E] {
 }
 
 // 设置文字对齐方式
-// 示例：.TextAlign("center")
-func (s *Styler[E]) TextAlign(v string) *Styler[E] {
-	setStyle(s.base, "text-align", v)
+func (s *Styler[E]) SetTextAlign(v TextAlign) *Styler[E] {
+	setStyle(s.base, "text-align", fmt.Sprintf("%v", v))
 	return s
 }
-
-// === 终结器 ===
 
 // 返回最终设置后的元素
 func (s *Styler[E]) ToUI() E {
