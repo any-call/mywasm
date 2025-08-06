@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"image/color"
-	"strconv"
 )
 
 type Styler[E app.UI] struct {
@@ -16,55 +15,55 @@ func NewStyler[E app.UI](ui E) *Styler[E] {
 }
 
 // 设置元素在父容器的位置
-func (s *Styler[E]) SetAlign(align Align) *Styler[E] {
+func (s *Styler[E]) SetPosition(position Position) *Styler[E] {
 	setStyle(s.base, "position", "absolute")
-	switch align {
-	case AlignTopLeft:
+	switch position {
+	case PositionTopLeft:
 		setStyle(s.base, "top", "0")
 		setStyle(s.base, "left", "0")
 		break
 
-	case AlignTopCenter:
+	case PositionTopCenter:
 		setStyle(s.base, "top", "0")
 		setStyle(s.base, "left", "50%")
 		setStyle(s.base, "transform", "translateX(-50%)")
 		break
 
-	case AlignTopRight:
+	case PositionTopRight:
 		setStyle(s.base, "top", "0")
 		setStyle(s.base, "right", "0")
 		break
 
-	case AlignCenterLeft:
+	case PositionCenterLeft:
 		setStyle(s.base, "top", "50%")
 		setStyle(s.base, "left", "0")
 		setStyle(s.base, "transform", "translateY(-50%)")
 		break
 
-	case AlignCenter:
+	case PositionCenter:
 		setStyle(s.base, "top", "50%")
 		setStyle(s.base, "left", "50%")
 		setStyle(s.base, "transform", "translate(-50%, -50%)")
 		break
 
-	case AlignCenterRight:
+	case PositionCenterRight:
 		setStyle(s.base, "top", "50%")
 		setStyle(s.base, "right", "0")
 		setStyle(s.base, "transform", "translateY(-50%)")
 		break
 
-	case AlignBottomLeft:
+	case PositionBottomLeft:
 		setStyle(s.base, "bottom", "0")
 		setStyle(s.base, "left", "0")
 		break
 
-	case AlignBottomCenter:
+	case PositionBottomCenter:
 		setStyle(s.base, "bottom", "0")
 		setStyle(s.base, "left", "50%")
 		setStyle(s.base, "transform", "translateX(-50%)")
 		break
 
-	case AlignBottomRight:
+	case PositionBottomRight:
 		setStyle(s.base, "bottom", "0")
 		setStyle(s.base, "right", "0")
 		break
@@ -74,52 +73,61 @@ func (s *Styler[E]) SetAlign(align Align) *Styler[E] {
 }
 
 // 设置元素的宽度
-func (s *Styler[E]) SetWidthPX(width int) *Styler[E] {
-	setStyle(s.base, "width", "%dpx", width)
+func (s *Styler[E]) SetWidth(width string) *Styler[E] {
+	setStyle(s.base, "width", width)
 	return s
 }
 
 // 设置元素的高度
-func (s *Styler[E]) SetHeightPX(v int) *Styler[E] {
-	setStyle(s.base, "height", "%dpx", v)
+func (s *Styler[E]) SetHeight(v string) *Styler[E] {
+	setStyle(s.base, "height", v)
 	return s
 }
 
 // 设置背景颜色
-// 示例：.Background("skyblue")
-func (s *Styler[E]) SetBackgroundColor(v color.Color) *Styler[E] {
+func (s *Styler[E]) SetBackgroundColorEx(v color.Color) *Styler[E] {
 	setStyle(s.base, "background-color", ColorToCSS(v))
 	return s
 }
 
+func (s *Styler[E]) SetBackgroundColor(v string) *Styler[E] {
+	setStyle(s.base, "background-color", v)
+	return s
+}
+
 // 设置字体颜色
-func (s *Styler[E]) SetColor(v color.Color) *Styler[E] {
+func (s *Styler[E]) SetColorEx(v color.Color) *Styler[E] {
 	setStyle(s.base, "color", ColorToCSS(v))
+	return s
+}
+
+func (s *Styler[E]) SetColor(v string) *Styler[E] {
+	setStyle(s.base, "color", v)
 	return s
 }
 
 // 设置内边距（padding）
 // 示例：.Padding("10px")
-func (s *Styler[E]) SetPaddingPx(v ...int) *Styler[E] {
+func (s *Styler[E]) SetPadding(v ...string) *Styler[E] {
 	var value string
 	switch len(v) {
 	case 0:
 		return s
 	case 1:
 		// 四个方向相同
-		value = fmt.Sprintf("%dpx", v[0])
+		value = fmt.Sprintf("%s", v[0])
 		break
 	case 2:
 		// 上下 + 左右
-		value = fmt.Sprintf("%dpx %dpx", v[0], v[1])
+		value = fmt.Sprintf("%s %s", v[0], v[1])
 		break
 	case 3:
 		// 上 + 左右 + 下
-		value = fmt.Sprintf("%dpx %dpx %dpx", v[0], v[1], v[2])
+		value = fmt.Sprintf("%s %s %s", v[0], v[1], v[2])
 		break
 	default:
 		// 上 + 右 + 下 + 左
-		value = fmt.Sprintf("%dpx %dpx %dpx %dpx", v[0], v[1], v[2], v[3])
+		value = fmt.Sprintf("%s %s %s %s", v[0], v[1], v[2], v[3])
 		break
 	}
 
@@ -128,26 +136,26 @@ func (s *Styler[E]) SetPaddingPx(v ...int) *Styler[E] {
 }
 
 // 设置外边距（margin）
-func (s *Styler[E]) SetMarginPx(v ...int) *Styler[E] {
+func (s *Styler[E]) SetMarginPx(v ...string) *Styler[E] {
 	var value string
 	switch len(v) {
 	case 0:
 		return s
 	case 1:
 		// 四个方向相同
-		value = fmt.Sprintf("%dpx", v[0])
+		value = fmt.Sprintf("%s", v[0])
 		break
 	case 2:
 		// 上下 + 左右
-		value = fmt.Sprintf("%dpx %dpx", v[0], v[1])
+		value = fmt.Sprintf("%s %s", v[0], v[1])
 		break
 	case 3:
 		// 上 + 左右 + 下
-		value = fmt.Sprintf("%dpx %dpx %dpx", v[0], v[1], v[2])
+		value = fmt.Sprintf("%s %s %s", v[0], v[1], v[2])
 		break
 	default:
 		// 上 + 右 + 下 + 左
-		value = fmt.Sprintf("%dpx %dpx %dpx %dpx", v[0], v[1], v[2], v[3])
+		value = fmt.Sprintf("%s %s %s %s", v[0], v[1], v[2], v[3])
 		break
 	}
 
@@ -156,8 +164,8 @@ func (s *Styler[E]) SetMarginPx(v ...int) *Styler[E] {
 }
 
 // 设置边框样式
-func (s *Styler[E]) SetBorder(widthPx int, style BorderStyle, color color.Color, sides ...BorderSide) *Styler[E] {
-	css := fmt.Sprintf("%dpx %s %s", widthPx, style, ColorToCSS(color))
+func (s *Styler[E]) SetBorder(width string, style BorderStyle, color color.Color, sides ...BorderSide) *Styler[E] {
+	css := fmt.Sprintf("%s %s %s", width, style, ColorToCSS(color))
 	if len(sides) == 0 {
 		setStyle(s.base, "border", css)
 	} else {
@@ -170,13 +178,12 @@ func (s *Styler[E]) SetBorder(widthPx int, style BorderStyle, color color.Color,
 }
 
 // 设置圆角大小
-func (s *Styler[E]) SetBorderRadius(rPx int, sides ...BorderRadiusSide) *Styler[E] {
-	css := strconv.Itoa(rPx) + "px"
+func (s *Styler[E]) SetBorderRadius(rValue string, sides ...BorderRadiusSide) *Styler[E] {
 	if len(sides) == 0 {
-		setStyle(s.base, "border-radius", css)
+		setStyle(s.base, "border-radius", rValue)
 	} else {
 		for _, side := range sides {
-			setStyle(s.base, fmt.Sprintf("%v", side), css)
+			setStyle(s.base, fmt.Sprintf("%v", side), rValue)
 		}
 	}
 	return s
@@ -184,14 +191,30 @@ func (s *Styler[E]) SetBorderRadius(rPx int, sides ...BorderRadiusSide) *Styler[
 
 // 设置字体大小
 // 示例：.FontSize("16px")
-func (s *Styler[E]) SetFontSizePx(v int) *Styler[E] {
-	setStyle(s.base, "font-size", strconv.Itoa(v)+"px")
+func (s *Styler[E]) SetFontSize(v string) *Styler[E] {
+	setStyle(s.base, "font-size", v)
 	return s
 }
 
 // 设置文字对齐方式
 func (s *Styler[E]) SetTextAlign(v TextAlign) *Styler[E] {
 	setStyle(s.base, "text-align", fmt.Sprintf("%v", v))
+	return s
+}
+
+// 设置容器类子元素水平方向排序
+func (s *Styler[E]) SetVBox(itemSpace string) *Styler[E] {
+	setStyle(s.base, "display", "flex")
+	setStyle(s.base, "flex-direction", "column")
+	setStyle(s.base, "gap", itemSpace)
+	return s
+}
+
+// 设置容器类子元素水平方向排序
+func (s *Styler[E]) SetHBox(itemSpace string) *Styler[E] {
+	setStyle(s.base, "display", "flex")
+	setStyle(s.base, "flex-direction", "row")
+	setStyle(s.base, "gap", itemSpace)
 	return s
 }
 

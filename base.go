@@ -1,17 +1,17 @@
 package mywasm
 
-type Align int
+type Position int
 
 const (
-	AlignTopLeft Align = iota
-	AlignTopCenter
-	AlignTopRight
-	AlignCenterLeft
-	AlignCenter
-	AlignCenterRight
-	AlignBottomLeft
-	AlignBottomCenter
-	AlignBottomRight
+	PositionTopLeft Position = iota
+	PositionTopCenter
+	PositionTopRight
+	PositionCenterLeft
+	PositionCenter
+	PositionCenterRight
+	PositionBottomLeft
+	PositionBottomCenter
+	PositionBottomRight
 )
 
 // 边框风格类型
