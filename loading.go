@@ -4,29 +4,37 @@ import (
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
-type Loading struct {
+type Loading[E app.UI] struct {
 	app.Compo
 	loading   bool
-	childView app.UI
+	childView E
 }
 
-func NewLoading(child app.UI) *Loading {
-	return &Loading{
-		loading:   true,
+func NewLoading[E app.UI](child E) *Loading[E] {
+	return &Loading[E]{
+		loading:   false,
 		childView: child,
 	}
 }
 
-func (l *Loading) Start() {
+func (l *Loading[E]) GetChild() E {
+	return l.childView
+}
+
+func (l *Loading[E]) IsLoading() bool {
+	return l.loading
+}
+
+func (l *Loading[E]) Start() {
 	l.loading = true
 	// 触发重新渲染
 }
 
-func (l *Loading) Stop() {
+func (l *Loading[E]) Stop() {
 	l.loading = false
 }
 
-func (l *Loading) Render() app.UI {
+func (l *Loading[E]) Render() app.UI {
 	return app.Div().
 		Style("position", "relative").
 		Style("display", "inline-block").
