@@ -7,7 +7,6 @@ import (
 
 type Button struct {
 	app.Compo
-
 	text           string
 	icon           string
 	textColor      string

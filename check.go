@@ -6,7 +6,7 @@ import (
 
 type Checkbox struct {
 	app.Compo
-
+	CtxRefresher
 	label     string
 	checked   bool
 	onChanged func(bool)
@@ -16,49 +16,53 @@ type Checkbox struct {
 }
 
 // 工厂方法
-func NewCheckbox(label string, value bool) *Checkbox {
+func NewCheckbox(label string) *Checkbox {
 	return &Checkbox{
-		label:   label,
-		checked: value,
-		gap:     "4px",
+		label: label,
+		gap:   "4px",
 	}
 }
 
 // -------- 链式 API --------
 
-func (c *Checkbox) SetText(label string) *Checkbox {
-	c.label = label
-	return c
+func (self *Checkbox) SetText(label string) *Checkbox {
+	self.label = label
+	self.Refresh()
+	return self
 }
 
-func (c *Checkbox) SetChecked(checked bool) *Checkbox {
-	c.checked = checked
-	return c
+func (self *Checkbox) SetChecked(checked bool) *Checkbox {
+	self.checked = checked
+	self.Refresh()
+	return self
 }
 
-func (c *Checkbox) OnChange(cb func(bool)) *Checkbox {
-	c.onChanged = cb
-	return c
+func (self *Checkbox) OnChange(cb func(bool)) *Checkbox {
+	self.onChanged = cb
+	self.Refresh()
+	return self
 }
 
-func (c *Checkbox) SetFontSize(size string) *Checkbox {
-	c.fontSize = size
-	return c
+func (self *Checkbox) SetFontSize(size string) *Checkbox {
+	self.fontSize = size
+	self.Refresh()
+	return self
 }
 
-func (c *Checkbox) SetFontColor(color string) *Checkbox {
-	c.fontColor = color
-	return c
+func (self *Checkbox) SetFontColor(color string) *Checkbox {
+	self.fontColor = color
+	self.Refresh()
+	return self
 }
 
-func (c *Checkbox) SetGap(gap string) *Checkbox {
-	c.gap = gap
-	return c
+func (self *Checkbox) SetGap(gap string) *Checkbox {
+	self.gap = gap
+	self.Refresh()
+	return self
 }
 
 // -------- 渲染 --------
-
-func (c *Checkbox) Render() app.UI {
+func (self *Checkbox) Render() app.UI {
 	return app.Label().
 		Style("display", "flex").
 		Style("align-items", "center").
@@ -66,18 +70,18 @@ func (c *Checkbox) Render() app.UI {
 		Body(
 			app.Input().
 				Type("checkbox").
-				Checked(c.checked).
+				Checked(self.checked).
 				OnChange(func(ctx app.Context, e app.Event) {
 					val := ctx.JSSrc().Get("checked").Bool()
-					c.checked = val
-					if c.onChanged != nil {
-						c.onChanged(val)
+					self.checked = val
+					if self.onChanged != nil {
+						self.onChanged(val)
 					}
 				}),
 			app.Span().
-				Text(c.label).
-				Style("margin-left", c.gap).
-				Style("font-size", c.fontSize).
-				Style("color", c.fontColor),
+				Text(self.label).
+				Style("margin-left", self.gap).
+				Style("font-size", self.fontSize).
+				Style("color", self.fontColor),
 		)
 }

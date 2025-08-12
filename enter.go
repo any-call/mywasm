@@ -6,12 +6,13 @@ import (
 
 type Enter struct {
 	app.Compo
-
-	// 私有属性
-	value       string
-	errorText   string
-	iconClass   string
+	CtxRefresher
 	placeholder string
+	value       string
+	onChanged   func(string)
+	// 私有属性
+	errorText string
+	iconClass string
 
 	// 样式
 	width        string
@@ -21,98 +22,94 @@ type Enter struct {
 	bgColor      string
 	isPassword   bool
 	showPassword bool //当是密码框时，用于控件明文/密码
-
-	bound *string
 }
 
-func NewEnter(icon, placeholder string) *Enter {
-	return (&Enter{}).
-		SetIcon(icon).
-		SetPlaceholder(placeholder).
-		SetSize("100%", "40px").
+func NewEnter(placeholder, v string) *Enter {
+	return (&Enter{
+		placeholder: placeholder,
+		value:       v,
+	}).
+		SetSize("100%", "36px").
 		SetFontStyle("14px", "#ffffff").
 		SetBackground("#3b4b5a")
 }
 
 // ------------- 链式对外API -------------
-
-func (e *Enter) SetValue(v string) *Enter {
-	e.value = v
-	return e
+func (self *Enter) SetValue(v string) *Enter {
+	self.value = v
+	self.Refresh()
+	return self
 }
 
-func (e *Enter) GetValue() string {
-	return e.value
+func (self *Enter) SetPlaceHolder(placeholder string) *Enter {
+	self.placeholder = placeholder
+	self.Refresh()
+	return self
 }
 
-func (e *Enter) Bind(s *string) *Enter {
-	e.bound = s
-	if s != nil {
-		e.value = *s // 初始化同步
-	}
-	return e
+func (self *Enter) OnChange(cb func(string)) *Enter {
+	self.onChanged = cb
+	return self
 }
 
-func (e *Enter) SetPlaceholder(ph string) *Enter {
-	e.placeholder = ph
-	return e
+func (self *Enter) SetErrorText(err string) *Enter {
+	self.errorText = err
+	self.Refresh()
+	return self
 }
 
-func (e *Enter) SetErrorText(err string) *Enter {
-	e.errorText = err
-	return e
+func (self *Enter) SetIcon(class string) *Enter {
+	self.iconClass = class
+	self.Refresh()
+	return self
 }
 
-func (e *Enter) SetIcon(class string) *Enter {
-	e.iconClass = class
-	return e
+func (self *Enter) SetSize(width, height string) *Enter {
+	self.width = width
+	self.height = height
+	self.Refresh()
+	return self
 }
 
-func (e *Enter) SetSize(width, height string) *Enter {
-	e.width = width
-	e.height = height
-	return e
+func (self *Enter) SetFontStyle(size, color string) *Enter {
+	self.fontSize = size
+	self.fontColor = color
+	return self
 }
 
-func (e *Enter) SetFontStyle(size, color string) *Enter {
-	e.fontSize = size
-	e.fontColor = color
-	return e
+func (self *Enter) SetBackground(color string) *Enter {
+	self.bgColor = color
+	return self
 }
 
-func (e *Enter) SetBackground(color string) *Enter {
-	e.bgColor = color
-	return e
-}
-
-func (e *Enter) SetPasswordMode(enable bool) *Enter {
-	e.isPassword = enable
-	return e
+func (self *Enter) SetPasswordMode(enable bool) *Enter {
+	self.isPassword = enable
+	return self
 }
 
 // ------------- 渲染 -------------
 
-func (e *Enter) Render() app.UI {
+func (self *Enter) Render() app.UI {
 	inputType := "text"
-	if e.isPassword && e.showPassword == false {
+	if self.isPassword && self.showPassword == false {
 		inputType = "password"
 	}
 
 	// 默认值处理
-	if e.width == "" {
-		e.width = "100%"
+	if self.width == "" {
+		self.width = "100%"
 	}
-	if e.height == "" {
-		e.height = "40px"
+	if self.height == "" {
+		self.height = "36px"
 	}
-	if e.fontSize == "" {
-		e.fontSize = "14px"
+	if self.fontSize == "" {
+		self.fontSize = "14px"
 	}
-	if e.fontColor == "" {
-		e.fontColor = "white"
+	if self.fontColor == "" {
+		self.fontColor = "white"
 	}
-	if e.bgColor == "" {
-		e.bgColor = "#3b4b5a"
+	if self.bgColor == "" {
+		self.bgColor = "#3b4b5a"
 	}
 
 	return app.Div().Styles(map[string]string{
@@ -123,9 +120,9 @@ func (e *Enter) Render() app.UI {
 		app.Div().Styles(map[string]string{
 			"display":       "flex",
 			"align-items":   "center",
-			"width":         e.width,
-			"height":        e.height,
-			"background":    e.bgColor,
+			"width":         self.width,
+			"height":        self.height,
+			"background":    self.bgColor,
 			"border-radius": "6px",
 			"padding":       "0 10px",
 			"gap":           "8px",
@@ -133,21 +130,18 @@ func (e *Enter) Render() app.UI {
 			"overflow":      "hidden",
 		}).Body(
 			// 可选图标
-			app.If(e.iconClass != "",
+			app.If(self.iconClass != "",
 				func() app.UI {
-					return app.I().Class(e.iconClass).Style("color", "#aaa")
+					return app.I().Class(self.iconClass).Style("color", "#aaa")
 				},
 			),
 			// 输入框
-			app.Input().
-				Type(inputType).
-				Placeholder(e.placeholder).
-				Value(e.value).
-				OnInput(func(ctx app.Context, ev app.Event) {
+			app.Input().Placeholder(self.placeholder).Value(self.value).Type(inputType).
+				OnChange(func(ctx app.Context, evt app.Event) {
 					val := ctx.JSSrc().Get("value").String()
-					e.value = val
-					if e.bound != nil {
-						*e.bound = val
+					self.value = val
+					if self.onChanged != nil {
+						self.onChanged(val)
 					}
 				}).
 				Styles(map[string]string{
@@ -155,26 +149,27 @@ func (e *Enter) Render() app.UI {
 					"background": "transparent",
 					"border":     "none",
 					"outline":    "none",
-					"color":      e.fontColor,
-					"font-size":  e.fontSize,
+					"color":      self.fontColor,
+					"font-size":  self.fontSize,
 				}),
-			app.If(e.isPassword, func() app.UI {
+			app.If(self.isPassword, func() app.UI {
 				text := "👁"
-				if e.showPassword { //显示明文
+				if self.showPassword { //显示明文
 					text = "🙈"
 				}
 				return app.Button().Text(text).Style("background", "none").
 					Style("background-color", "transparent").
 					OnClick(func(ctx app.Context, evt app.Event) {
-						e.showPassword = !e.showPassword
+						self.showPassword = !self.showPassword
+						ctx.Update()
 					})
 			}),
 		),
 
 		// 错误提示（可选）
-		app.If(e.errorText != "",
+		app.If(self.errorText != "",
 			func() app.UI {
-				return app.Div().Text(e.errorText).Styles(map[string]string{
+				return app.Div().Text(self.errorText).Styles(map[string]string{
 					"color":      "red",
 					"font-size":  "12px",
 					"margin-top": "4px",
